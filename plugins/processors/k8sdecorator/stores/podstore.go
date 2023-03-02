@@ -147,6 +147,7 @@ func (p *PodStore) Decorate(metric telegraf.Metric, kubernetesBlob map[string]in
 
 		// If the entry is not a placeholder, decorate the pod
 		if entry.pod.Name != "" {
+			log.Printf("D! pod information found in podstore for pod %s", podKey)
 			p.decorateCpu(metric, tags, &entry.pod)
 			p.decorateMem(metric, tags, &entry.pod)
 			p.addStatus(metric, tags, &entry.pod)
@@ -190,7 +191,10 @@ func (p *PodStore) getNodeStats() nodeStats {
 }
 
 func (p *PodStore) refresh(now time.Time) {
-	podList, _ := p.kubeClient.ListPods()
+	podList, err := p.kubeClient.ListPods()
+	if err != nil {
+		log.Printf("E! unable to refresh pod list: %v", err)
+	}
 	p.refreshInternal(now, podList)
 	p.nodeInfo.refreshEbsId()
 }
@@ -212,12 +216,15 @@ func (p *PodStore) refreshInternal(now time.Time, podList []corev1.Pod) {
 	var cpuRequest int64
 	var memRequest int64
 
+	log.Printf("I! refreshing pod store with %v pods", len(podList))
+	log.Printf("D! pod list dump: %+v", podList)
 	for _, pod := range podList {
 		podKey := createPodKeyFromMetaData(&pod)
 		if podKey == "" {
 			log.Printf("W! podKey is unavailable refresh pod store for pod %s", pod.Name)
 			continue
 		}
+		log.Printf("D! updating pod store for pod %s", podKey)
 		tmpCpuReq, _ := getResourceSettingForPod(&pod, p.nodeInfo.getCPUCapacity(), cpuKey, getRequestForContainer)
 		cpuRequest += tmpCpuReq
 		tmpMemReq, _ := getResourceSettingForPod(&pod, p.nodeInfo.getMemCapacity(), memoryKey, getRequestForContainer)

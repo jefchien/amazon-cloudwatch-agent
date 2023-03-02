@@ -176,6 +176,8 @@ func processPod(info *cinfo.ContainerInfo, podKeys map[string]podKey) []*extract
 		return result
 	}
 
+	log.Printf("D! cadvisor processing pod for %+v", podKey)
+
 	tags := map[string]string{}
 	tags[PodIdKey] = podKey.podId
 	tags[K8sPodNameKey] = podKey.podName

@@ -4,6 +4,7 @@
 package k8sdecorator
 
 import (
+	"log"
 	"time"
 
 	. "github.com/aws/amazon-cloudwatch-agent/internal/containerinsightscommon"
@@ -48,6 +49,7 @@ OUTER:
 		for _, store := range k.stores {
 			if !store.Decorate(metric, kubernetesBlob) {
 				// drop the unexpected metric
+				log.Printf("D! unable to decorate k8s tags. dropping metric %s with tags %v", metric.Name(), metric.Tags())
 				continue OUTER
 			}
 		}
