@@ -4,22 +4,40 @@
 package configprovider
 
 import (
+	"github.com/open-telemetry/opentelemetry-collector-contrib/confmap/provider/s3provider"
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/confmap/converter/expandconverter"
+	"go.opentelemetry.io/collector/confmap/provider/envprovider"
 	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
+	"go.opentelemetry.io/collector/confmap/provider/httpprovider"
+	"go.opentelemetry.io/collector/confmap/provider/httpsprovider"
+	"go.opentelemetry.io/collector/confmap/provider/yamlprovider"
 	"go.opentelemetry.io/collector/otelcol"
 )
 
 func Get(configPath string) (otelcol.ConfigProvider, error) {
-	fprovider := fileprovider.NewWithSettings(confmap.ProviderSettings{})
+	providers := []confmap.Provider{
+		fileprovider.NewWithSettings(confmap.ProviderSettings{}),
+		envprovider.NewWithSettings(confmap.ProviderSettings{}),
+		yamlprovider.NewWithSettings(confmap.ProviderSettings{}),
+		httpprovider.NewWithSettings(confmap.ProviderSettings{}),
+		httpsprovider.NewWithSettings(confmap.ProviderSettings{}),
+		s3provider.New(),
+	}
 	settings := otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
 			URIs:       []string{configPath},
 			Converters: []confmap.Converter{expandconverter.New(confmap.ConverterSettings{})},
-			Providers: map[string]confmap.Provider{
-				fprovider.Scheme(): fprovider,
-			},
+			Providers:  toProviderMap(providers),
 		},
 	}
 	return otelcol.NewConfigProvider(settings)
+}
+
+func toProviderMap(providers []confmap.Provider) map[string]confmap.Provider {
+	providerMap := make(map[string]confmap.Provider, len(providers))
+	for _, provider := range providers {
+		providerMap[provider.Scheme()] = provider
+	}
+	return providerMap
 }
