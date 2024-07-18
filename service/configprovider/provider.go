@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 )
 
-func Get(configPath string) (otelcol.ConfigProvider, error) {
+func GetConfigProviderSettings(configURIs ...string) otelcol.ConfigProviderSettings {
 	providers := []confmap.Provider{
 		fileprovider.NewWithSettings(confmap.ProviderSettings{}),
 		envprovider.NewWithSettings(confmap.ProviderSettings{}),
@@ -24,14 +24,13 @@ func Get(configPath string) (otelcol.ConfigProvider, error) {
 		httpsprovider.NewWithSettings(confmap.ProviderSettings{}),
 		s3provider.New(),
 	}
-	settings := otelcol.ConfigProviderSettings{
+	return otelcol.ConfigProviderSettings{
 		ResolverSettings: confmap.ResolverSettings{
-			URIs:       []string{configPath},
+			URIs:       configURIs,
 			Converters: []confmap.Converter{expandconverter.New(confmap.ConverterSettings{})},
 			Providers:  toProviderMap(providers),
 		},
 	}
-	return otelcol.NewConfigProvider(settings)
 }
 
 func toProviderMap(providers []confmap.Provider) map[string]confmap.Provider {

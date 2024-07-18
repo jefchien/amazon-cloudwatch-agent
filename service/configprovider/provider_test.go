@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 
 	"github.com/aws/amazon-cloudwatch-agent/service/defaultcomponents"
 )
@@ -27,7 +28,8 @@ func TestConfigProvider(t *testing.T) {
 	factories, err := defaultcomponents.Factories()
 	require.NoError(t, err)
 
-	actualProvider, err := Get(filepath.Join("../../translator/tocwconfig/sampleConfig", "config_with_env.yaml"))
+	settings := GetConfigProviderSettings(filepath.Join("../../translator/tocwconfig/sampleConfig", "config_with_env.yaml"))
+	actualProvider, err := otelcol.NewConfigProvider(settings)
 	assert.NoError(t, err)
 	actualCfg, err := actualProvider.Get(context.Background(), factories)
 	assert.NoError(t, err)
