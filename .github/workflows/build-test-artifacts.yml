@@ -13,4 +13,4 @@ jobs:
   succeed:
     runs-on: ubuntu-latest
     steps:
-      - run: echo 'succeed'
+      - run: echo 'change'
