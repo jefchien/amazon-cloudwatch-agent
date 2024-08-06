@@ -14,3 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo 'change'
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh workflow run integration-test.yml --ref ${{ github.ref_name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
