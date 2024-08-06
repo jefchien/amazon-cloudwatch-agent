@@ -3,6 +3,9 @@
 
 name: Run Integration Tests
 
+run-name: >-
+  ${{ github.event.workflow_run.pull_requests && format('{0} ({1})', github.event.workflow_run.pull_request[0].title, github.event.workflow_run.pull_request[0].id) || 'Test title' }}
+
 on:
   workflow_run:
     workflows: [ Build Test Artifacts ]
@@ -10,10 +13,14 @@ on:
       - completed
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
+  called-by:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo '${{ github.event.workflow_run.head_branch }} / ${{ github.event.workflow_run.head_sha }}'
   succeed:
     runs-on: ubuntu-latest
     steps:
