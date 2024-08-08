@@ -26,6 +26,10 @@ on:
         description: 'The ID of the build-test-artifacts workflow run'
         type: number
         required: true
+      build_sha:
+        description: 'The SHA of the build'
+        type: string
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -45,6 +49,13 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          if [[ ${{ inputs.build_sha }} == ${{ github.sha }} ]]; then
+            echo "SHA is the same"
+          else
+            echo "Build workflow SHA and test SHA are different"
+            exit 1
+          fi
 
   Test:
     runs-on: ubuntu-latest
